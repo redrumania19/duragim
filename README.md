@@ -1,0 +1,2 @@
+# duragim
+Zamanını Mantoklı Kullan
