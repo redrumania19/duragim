@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Durağım</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F2A4A">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0F2A4A;
+    --navy-soft:#1D3F63;
+    --cream:#F4F1E9;
+    --paper:#FFFFFF;
+    --amber:#F0A83C;
+    --amber-dark:#C9821F;
+    --rust:#C1502E;
+    --sage:#4E7A5C;
+    --line:#E2DFD3;
+    --gray:#7B8590;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{margin:0;font-family:'Manrope',sans-serif;background:var(--cream);color:var(--navy);}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--cream);display:flex;flex-direction:column;}
+
+  .topbar{background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 16px) 20px 22px;position:relative;overflow:hidden;}
+  .topbar::after{content:"";position:absolute;right:-40px;top:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(240,168,60,0.16),transparent 70%);}
+  .brand-row{display:flex;align-items:center;gap:12px;}
+  .logo{width:40px;height:40px;border-radius:10px;background:var(--amber);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:var(--navy);flex-shrink:0;}
+  .brand{font-size:23px;font-weight:800;letter-spacing:-0.3px;}
+  .sub{font-size:10.5px;font-weight:700;letter-spacing:2px;color:var(--amber);margin-top:2px;}
+  .gear{margin-left:auto;background:none;border:none;color:#fff;opacity:.7;font-size:19px;cursor:pointer;}
+  .hr{border:none;border-top:1px solid rgba(255,255,255,0.15);margin:14px 0 12px;}
+  .loc-row{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:#C7D2DE;}
+  .loc-row .l{display:flex;align-items:center;gap:7px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--sage);flex-shrink:0;}
+  .dot.err{background:var(--rust);}
+  .refresh{color:var(--amber);font-weight:700;font-size:12.5px;background:none;border:none;cursor:pointer;font-family:inherit;}
+
+  .search-row{display:flex;gap:8px;margin-top:14px;}
+  .search-row input{flex:1;padding:11px 13px;border-radius:9px;border:none;font-size:14px;font-family:inherit;background:rgba(255,255,255,0.12);color:#fff;}
+  .search-row input::placeholder{color:#9FB0C2;}
+  .search-row button{background:var(--amber);color:var(--navy);border:none;padding:0 16px;border-radius:9px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;}
+
+  .toplabel{padding:16px 20px 4px;display:flex;justify-content:space-between;align-items:center;}
+  .toplabel span:first-child{font-size:11px;font-weight:800;letter-spacing:1.6px;color:var(--gray);}
+  .toplabel .count{font-size:12px;color:var(--gray);}
+
+  .list{padding:10px 16px 26px;display:flex;flex-direction:column;gap:12px;flex:1;}
+
+  .state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 30px;color:var(--gray);gap:14px;}
+  .state .icon{font-size:32px;}
+  .state h3{margin:0;font-size:17px;font-weight:800;color:var(--navy);}
+  .state p{margin:0;font-size:13px;line-height:1.5;}
+  .btn{background:var(--rust);color:#fff;border:none;padding:12px 22px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
+
+  .card{background:var(--paper);border-radius:12px;padding:14px 15px;position:relative;border:1px solid var(--line);text-decoration:none;color:inherit;display:block;}
+  .card::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;background:var(--amber);border-radius:3px;}
+  .row-top{display:flex;justify-content:space-between;align-items:flex-start;padding-left:13px;gap:10px;}
+  .name-block{display:flex;gap:9px;min-width:0;}
+  .rank{font-weight:800;font-size:12.5px;color:var(--amber-dark);margin-top:2px;flex-shrink:0;}
+  .name-col{min-width:0;}
+  .name-col .name{font-size:15.5px;font-weight:800;color:var(--navy);margin:0;line-height:1.25;}
+  .name-col .district{font-size:12px;color:var(--gray);margin-top:2px;}
+  .badge{flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.5px;padding:3px 8px;border-radius:6px;white-space:nowrap;}
+  .badge.open{background:#E7F0E9;color:var(--sage);}
+  .badge.closed{background:#F5E4DD;color:var(--rust);}
+  .row-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;padding-left:13px;border-top:1px solid var(--line);}
+  .row-bottom .l{display:flex;align-items:center;gap:8px;}
+  .dist-chip{background:#EEF1F5;color:var(--navy);font-weight:700;font-size:12px;padding:4px 9px;border-radius:6px;}
+  .walk{font-size:11.5px;color:var(--gray);}
+  .go{font-size:11px;font-weight:800;color:var(--sage);letter-spacing:.4px;}
+  .lines-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;padding-left:13px;}
+  .line-chip{background:var(--navy);color:#fff;font-size:10.5px;font-weight:800;padding:3px 7px;border-radius:5px;letter-spacing:.2px;border:none;cursor:pointer;font-family:inherit;}
+  .line-chip.more{background:#EEF1F5;color:var(--gray);cursor:default;}
+
+  .eta-modal{background:var(--paper);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:22px 22px calc(env(safe-area-inset-bottom) + 22px);max-height:75vh;overflow-y:auto;}
+  .eta-modal h3{margin:0 0 4px;font-size:19px;color:var(--navy);font-weight:800;}
+  .eta-modal .stopname{font-size:13px;color:var(--gray);margin-bottom:16px;}
+  .eta-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line);}
+  .eta-row:first-of-type{border-top:none;}
+  .eta-row .kapi{font-size:13px;font-weight:700;color:var(--navy);}
+  .eta-row .stops{font-size:11.5px;color:var(--gray);margin-top:2px;}
+  .eta-row .min{font-size:20px;font-weight:800;color:var(--rust);}
+  .eta-row .min span{font-size:11px;font-weight:600;color:var(--gray);}
+  .eta-loading, .eta-empty{text-align:center;padding:30px 10px;color:var(--gray);font-size:13.5px;}
+  .eta-disclaimer{font-size:10.5px;color:var(--gray);text-align:center;margin-top:14px;line-height:1.4;}
+
+  .route-card{background:var(--paper);border-radius:12px;padding:14px 15px;border:1px solid var(--line);position:relative;}
+  .route-card::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;background:var(--rust);border-radius:3px;}
+  .route-top{display:flex;justify-content:space-between;align-items:flex-start;padding-left:13px;gap:10px;}
+  .route-hat{background:var(--navy);color:#fff;font-size:13px;font-weight:800;padding:5px 10px;border-radius:7px;flex-shrink:0;}
+  .route-info{flex:1;min-width:0;}
+  .route-info .dest{font-size:14.5px;font-weight:700;color:var(--navy);margin:0;}
+  .route-info .origin{font-size:12px;color:var(--gray);margin-top:2px;}
+  .route-eta{text-align:right;flex-shrink:0;}
+  .route-eta .min{font-size:19px;font-weight:800;color:var(--rust);}
+  .route-eta .min span{font-size:10.5px;font-weight:600;color:var(--gray);}
+  .route-eta .stops{font-size:10.5px;color:var(--gray);margin-top:1px;}
+
+  .footnote{text-align:center;font-size:10.5px;color:var(--gray);padding:4px 20px 22px;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(10,20,35,0.6);display:none;align-items:flex-end;justify-content:center;z-index:10;}
+  .modal-bg.show{display:flex;}
+  .modal{background:var(--paper);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:22px 22px calc(env(safe-area-inset-bottom) + 22px);}
+  .modal h3{margin:0 0 6px;font-size:18px;color:var(--navy);}
+  .modal p{font-size:13px;color:var(--gray);line-height:1.5;margin:0 0 14px;}
+  .modal-row{display:flex;gap:10px;}
+  .modal-row .btn{flex:1;}
+  .btn.secondary{background:#EEF1F5;color:var(--navy);}
+  .radius-row{display:flex;gap:8px;margin-bottom:16px;}
+  .radius-btn{flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;color:var(--navy);}
+  .radius-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand-row">
+      <div class="logo">D</div>
+      <div>
+        <div class="brand">Durağım</div>
+        <div class="sub">EN YAKIN OTOBÜS DURAĞI</div>
+      </div>
+      <button class="gear" id="gearBtn" aria-label="Ayarlar">⚙</button>
+    </div>
+    <hr class="hr">
+    <div class="loc-row">
+      <div class="l"><span class="dot" id="locDot"></span><span id="locText">Konum alınıyor…</span></div>
+      <button class="refresh" id="refreshBtn">Yenile</button>
+    </div>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Nereye gitmek istiyorsun? (örn. Mecidiyeköy)">
+      <button id="searchBtn">Ara</button>
+    </div>
+  </div>
+
+  <div class="toplabel" id="toplabel" style="display:none;">
+    <span id="toplabelText">YAKINDAKİ DURAKLAR</span>
+    <span class="count" id="countLabel"></span>
+    <button class="refresh" id="backToNearbyBtn" style="display:none;">Geri</button>
+  </div>
+
+  <div id="content" class="list"></div>
+  <div class="footnote" id="footnote"></div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>Arama yarıçapı</h3>
+    <p>Kaç metre çevrende durak aransın?</p>
+    <div class="radius-row" id="radiusRow">
+      <button class="radius-btn" data-r="500">500 m</button>
+      <button class="radius-btn active" data-r="1000">1 km</button>
+      <button class="radius-btn" data-r="2000">2 km</button>
+    </div>
+    <div class="modal-row">
+      <button class="btn secondary" id="closeModalBtn">Kapat</button>
+      <button class="btn" id="applyModalBtn">Uygula</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="etaModalBg">
+  <div class="eta-modal" id="etaModalContent"></div>
+</div>
+
+<script>
+const PROXY = 'https://coder.troyeminonu.workers.dev';
+let coords = null;
+let allStops = null; // cached full stop list
+let stopLines = null; // durak kodu -> [hat kodu, ...]
+let RADIUS_M = 1000;
+
+const contentEl = document.getElementById('content');
+const locText = document.getElementById('locText');
+const locDot = document.getElementById('locDot');
+const toplabel = document.getElementById('toplabel');
+const countLabel = document.getElementById('countLabel');
+const footnote = document.getElementById('footnote');
+
+function haversine(lat1, lng1, lat2, lng2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function walkMin(km){ return Math.max(1, Math.round(km*12)); }
+
+function showState(icon, title, text, btnLabel, btnFn){
+  toplabel.style.display = 'none';
+  footnote.textContent = '';
+  contentEl.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'state';
+  div.innerHTML = `<div class="icon">${icon}</div><h3>${title}</h3><p>${text}</p>`;
+  if (btnLabel){
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = btnLabel;
+    btn.onclick = btnFn;
+    div.appendChild(btn);
+  }
+  contentEl.appendChild(div);
+}
+
+function start(){
+  locText.textContent = 'Konum alınıyor…';
+  locDot.classList.remove('err');
+  showState('📍', 'Konum bekleniyor', 'Yakındaki durakları bulmak için konumuna ihtiyacım var.');
+
+  if (!navigator.geolocation){
+    locDot.classList.add('err');
+    locText.textContent = 'Konum desteklenmiyor';
+    showState('⚠️', 'Konum desteklenmiyor', 'Bu tarayıcı konum servisini desteklemiyor.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      locText.textContent = 'Konumun yakınında';
+      loadStops();
+    },
+    err => {
+      locDot.classList.add('err');
+      locText.textContent = 'Konum izni gerekli';
+      showState('🔒', 'Konum izni gerekli', 'Tarayıcı ayarlarından Durağım için konum iznini açıp tekrar dene.', 'Tekrar dene', start);
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+function extractSoapResult(xmlText, tagName){
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, 'text/xml');
+  let el = doc.getElementsByTagName(tagName)[0];
+  if (!el) {
+    const all = doc.getElementsByTagName('*');
+    for (const node of all){ if (node.localName === tagName){ el = node; break; } }
+  }
+  return el ? el.textContent : null;
+}
+
+function parseCoordinate(pointStr){
+  // "POINT (28.6952349999764 41.0104605000554)" -> {lng, lat}
+  const m = pointStr && pointStr.match(/POINT\s*\(([-\d.]+)\s+([-\d.]+)\)/);
+  if (!m) return null;
+  return { lng: parseFloat(m[1]), lat: parseFloat(m[2]) };
+}
+
+function parseDurakDetay(xmlText){
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, 'text/xml');
+  const get = (tag) => {
+    let els = doc.getElementsByTagName(tag);
+    if (!els.length){
+      els = Array.from(doc.getElementsByTagName('*')).filter(n => n.localName === tag);
+    }
+    return Array.from(els).map(n => n.textContent);
+  };
+  const durakkodu = get('DURAKKODU');
+  const xkoor = get('XKOORDINATI');
+  const ykoor = get('YKOORDINATI');
+  const durakadi = get('DURAKADI');
+  const yon = get('YON');
+  const sirano = get('SIRANO');
+  const out = [];
+  for (let i = 0; i < durakkodu.length; i++){
+    out.push({
+      durakKodu: durakkodu[i],
+      lng: parseFloat(xkoor[i]),
+      lat: parseFloat(ykoor[i]),
+      durakAdi: durakadi[i],
+      yon: yon[i],
+      sirano: parseInt(sirano[i], 10)
+    });
+  }
+  return out;
+}
+
+async function fetchDurakDetay(hatKodu){
+  const envelope = `<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <DurakDetay_GYY xmlns="http://tempuri.org/">
+      <hat_kodu>${hatKodu}</hat_kodu>
+    </DurakDetay_GYY>
+  </soap:Body>
+</soap:Envelope>`;
+  const res = await fetch(PROXY + '/ibb', {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': 'http://tempuri.org/DurakDetay_GYY' },
+    body: envelope
+  });
+  if (!res.ok) throw new Error('DurakDetay HTTP ' + res.status);
+  const xmlText = await res.text();
+  return parseDurakDetay(xmlText);
+}
+
+async function fetchLiveBuses(hatKodu){
+  const envelope = `<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <GetHatOtoKonum_json xmlns="http://tempuri.org/">
+      <HatKodu>${hatKodu}</HatKodu>
+    </GetHatOtoKonum_json>
+  </soap:Body>
+</soap:Envelope>`;
+  const res = await fetch(PROXY + '/SeferGerceklesme', {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': 'http://tempuri.org/GetHatOtoKonum_json' },
+    body: envelope
+  });
+  if (!res.ok) throw new Error('OtoKonum HTTP ' + res.status);
+  const xmlText = await res.text();
+  const jsonStr = extractSoapResult(xmlText, 'GetHatOtoKonum_jsonResult');
+  if (!jsonStr) return [];
+  const raw = JSON.parse(jsonStr);
+  return raw.map(b => ({
+    kapiNo: b.kapino || b.KapiNo || b.KAPINO,
+    lat: parseFloat(b.enlem || b.Enlem || b.ENLEM),
+    lng: parseFloat(b.boylam || b.Boylam || b.BOYLAM),
+    hatKodu: b.hatkodu || b.HatKodu || b.HATKODU,
+    hatAdi: b.hatad || b.HatAd || b.HATAD,
+  })).filter(b => !isNaN(b.lat) && !isNaN(b.lng));
+}
+
+const AVG_SPEED_KMH = 16; // şehir içi ortalama, trafik+durak dahil kaba tahmin
+
+async function computeEta(hatKodu, targetDurakKodu){
+  const [stops, buses] = await Promise.all([
+    fetchDurakDetay(hatKodu),
+    fetchLiveBuses(hatKodu)
+  ]);
+
+  // Hedef durağın hangi yön grubunda, hangi sırada olduğunu bul
+  const targetEntries = stops.filter(s => String(s.durakKodu) === String(targetDurakKodu));
+  if (!targetEntries.length){
+    return { error: 'Bu hat için durak sırası verisi bulunamadı.' };
+  }
+
+  // Yön gruplarını oluştur ve sırala
+  const byYon = {};
+  stops.forEach(s => {
+    if (!byYon[s.yon]) byYon[s.yon] = [];
+    byYon[s.yon].push(s);
+  });
+  Object.values(byYon).forEach(list => list.sort((a,b) => a.sirano - b.sirano));
+
+  if (!buses.length){
+    return { error: 'Bu hatta şu anda canlı araç verisi yok.', noBuses: true };
+  }
+
+  const results = [];
+  for (const bus of buses){
+    // Bu otobüsün rotadaki en yakın durağını bul (tüm yön grupları içinde)
+    let best = null, bestDist = Infinity;
+    for (const s of stops){
+      const d = haversine(bus.lat, bus.lng, s.lat, s.lng);
+      if (d < bestDist){ bestDist = d; best = s; }
+    }
+    if (!best) continue;
+
+    // Bu yön grubunda hedef durak var mı ve otobüs ondan önce mi?
+    const target = targetEntries.find(t => t.yon === best.yon);
+    if (!target) continue;
+    if (best.sirano > target.sirano) continue; // otobüs durağı geçmiş
+
+    const routeList = byYon[best.yon];
+    const startIdx = routeList.findIndex(s => s.sirano === best.sirano);
+    const endIdx = routeList.findIndex(s => s.sirano === target.sirano);
+    if (startIdx === -1 || endIdx === -1 || startIdx > endIdx) continue;
+
+    let distKm = 0;
+    for (let i = startIdx; i < endIdx; i++){
+      distKm += haversine(routeList[i].lat, routeList[i].lng, routeList[i+1].lat, routeList[i+1].lng);
+    }
+    const etaMin = Math.max(1, Math.round((distKm / AVG_SPEED_KMH) * 60));
+    const stopsAway = endIdx - startIdx;
+
+    results.push({ kapiNo: bus.kapiNo, etaMin, stopsAway });
+  }
+
+  results.sort((a,b) => a.etaMin - b.etaMin);
+  return { results };
+}
+
+
+async function loadStopLines(){
+  if (stopLines) return stopLines;
+  try{
+    const res = await fetch('stop_lines.json');
+    stopLines = await res.json();
+  } catch(e){
+    console.error('stop_lines.json yüklenemedi', e);
+    stopLines = {};
+  }
+  return stopLines;
+}
+
+async function loadStops(){
+  showState('🚌', 'Duraklar taranıyor…', 'İstanbul geneli durak verisi yükleniyor, bu ilk seferde biraz sürebilir.');
+  try{
+    await loadStopLines();
+    if (!allStops){
+      const envelope = `<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <GetDurak_json xmlns="http://tempuri.org/">
+      <DurakKodu></DurakKodu>
+    </GetDurak_json>
+  </soap:Body>
+</soap:Envelope>`;
+      const res = await fetch(PROXY + '/HatDurakGuzergah', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': 'http://tempuri.org/GetDurak_json' },
+        body: envelope
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const xmlText = await res.text();
+      const jsonStr = extractSoapResult(xmlText, 'GetDurak_jsonResult');
+      if (!jsonStr) throw new Error('Beklenmeyen yanıt biçimi');
+      const raw = JSON.parse(jsonStr);
+      allStops = raw.map(s => {
+        const c = parseCoordinate(s.KOORDINAT);
+        return c ? {
+          code: s.SDURAKKODU,
+          name: s.SDURAKADI,
+          district: s.ILCEADI,
+          direction: s.SYON,
+          physical: s.FIZIKI,
+          lat: c.lat,
+          lng: c.lng
+        } : null;
+      }).filter(Boolean);
+    }
+  } catch(e){
+    console.error(e);
+    showState('⚠️', 'Veri alınamadı', 'Durak verisi çekilemedi. Bağlantını kontrol edip tekrar dene.', 'Tekrar dene', loadStops);
+    return;
+  }
+
+  const nearby = allStops
+    .map(s => ({ ...s, dist: haversine(coords.lat, coords.lng, s.lat, s.lng) }))
+    .filter(s => s.dist * 1000 <= RADIUS_M)
+    .sort((a,b) => a.dist - b.dist)
+    .slice(0, 25);
+
+  if (!nearby.length){
+    showState('🚌', 'Yakında durak bulunamadı', `${RADIUS_M} metre içinde durak bulunamadı. Yarıçapı ⚙ ayarlardan artırabilirsin.`, 'Yarıçapı değiştir', () => document.getElementById('modalBg').classList.add('show'));
+    return;
+  }
+
+  toplabel.style.display = 'flex';
+  countLabel.textContent = `${nearby.length} durak · ${RADIUS_M >= 1000 ? (RADIUS_M/1000)+' km' : RADIUS_M+' m'} içinde`;
+  footnote.textContent = 'İETT (İBB Açık Veri) ile — canlı durak verisi';
+  render(nearby);
+}
+
+function render(stops){
+  contentEl.innerHTML = '';
+  stops.forEach((s, i) => {
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${coords.lat},${coords.lng}&destination=${s.lat},${s.lng}&travelmode=walking`;
+    const lines = (stopLines && stopLines[String(s.code)]) || [];
+    const shown = lines.slice(0, 8);
+    const extra = lines.length - shown.length;
+    const linesHtml = lines.length
+      ? `<div class="lines-row">${shown.map(l => `<button class="line-chip" data-hat="${l}" data-durak="${s.code}" data-name="${s.name}">${l}</button>`).join('')}${extra > 0 ? `<span class="line-chip more">+${extra}</span>` : ''}</div>`
+      : '';
+    const a = document.createElement('a');
+    a.className = 'card';
+    a.href = mapsUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML = `
+      <div class="row-top">
+        <div class="name-block">
+          <div class="rank">${String(i+1).padStart(2,'0')}</div>
+          <div class="name-col">
+            <p class="name">${s.name}</p>
+            <div class="district">${s.district || ''}${s.direction ? ' · ' + s.direction : ''}</div>
+          </div>
+        </div>
+      </div>
+      ${linesHtml}
+      <div class="row-bottom">
+        <div class="l">
+          <span class="dist-chip">${s.dist < 1 ? Math.round(s.dist*1000)+' m' : s.dist.toFixed(1)+' km'}</span>
+          <span class="walk">${walkMin(s.dist)} dk yürüyüş</span>
+        </div>
+        <span class="go">YOL TARİFİ →</span>
+      </div>
+    `;
+    contentEl.appendChild(a);
+  });
+
+  // Hat rozetlerine tıklama: kartın linkini tetiklemesin, ETA modalını açsın
+  contentEl.querySelectorAll('.line-chip[data-hat]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openEtaModal(btn.dataset.hat, btn.dataset.durak, btn.dataset.name);
+    });
+  });
+}
+
+function renderEtaLoading(hatKodu, stopName){
+  document.getElementById('etaModalContent').innerHTML = `
+    <h3>Hat ${hatKodu}</h3>
+    <div class="stopname">${stopName}</div>
+    <div class="eta-loading">Canlı araç konumu ve durak sırası hesaplanıyor…</div>
+  `;
+  document.getElementById('etaModalBg').classList.add('show');
+}
+
+function renderEtaResults(hatKodu, stopName, data){
+  let body;
+  if (data.error){
+    body = `<div class="eta-empty">${data.error}</div>`;
+  } else if (!data.results.length){
+    body = `<div class="eta-empty">Şu anda bu durağa yaklaşan araç görünmüyor.<br>Araçlar durağı geçmiş veya hat şu an sefer yapmıyor olabilir.</div>`;
+  } else {
+    body = data.results.slice(0, 5).map(r => `
+      <div class="eta-row">
+        <div>
+          <div class="kapi">🚌 ${r.kapiNo || 'Araç'}</div>
+          <div class="stops">${r.stopsAway} durak önce</div>
+        </div>
+        <div class="min">${r.etaMin}<span> dk</span></div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('etaModalContent').innerHTML = `
+    <h3>Hat ${hatKodu}</h3>
+    <div class="stopname">${stopName}</div>
+    ${body}
+    <div class="eta-disclaimer">Canlı GPS konumu + ortalama hız üzerinden tahmini süre. Trafiğe göre değişebilir.</div>
+  `;
+}
+
+async function openEtaModal(hatKodu, durakKodu, stopName){
+  renderEtaLoading(hatKodu, stopName);
+  try{
+    const data = await computeEta(hatKodu, durakKodu);
+    renderEtaResults(hatKodu, stopName, data);
+  } catch(e){
+    console.error(e);
+    document.getElementById('etaModalContent').innerHTML = `
+      <h3>Hat ${hatKodu}</h3>
+      <div class="stopname">${stopName}</div>
+      <div class="eta-empty">Veri alınamadı, tekrar dene.</div>
+    `;
+  }
+}
+
+document.getElementById('etaModalBg').addEventListener('click', e => {
+  if (e.target.id === 'etaModalBg') e.target.classList.remove('show');
+});
+
+// ---- Hedefe göre arama ----
+
+function turkishLower(s){
+  return (s || '').replace(/İ/g, 'i').replace(/I/g, 'ı').toLocaleLowerCase('tr');
+}
+
+async function searchDestination(query){
+  const toplabel = document.getElementById('toplabel');
+  const toplabelText = document.getElementById('toplabelText');
+  const backBtn = document.getElementById('backToNearbyBtn');
+  toplabel.style.display = 'flex';
+  toplabelText.textContent = `"${query.toUpperCase()}" İÇİN ARANIYOR`;
+  document.getElementById('countLabel').textContent = '';
+  backBtn.style.display = 'inline-block';
+
+  showState('🔍', 'Aranıyor…', `"${query}" için doğrudan giden hatlar kontrol ediliyor.`);
+
+  const q = turkishLower(query);
+  const destStops = allStops.filter(s => turkishLower(s.name).includes(q));
+  if (!destStops.length){
+    showState('🔍', 'Sonuç bulunamadı', `"${query}" ile eşleşen bir durak bulunamadı. Mahalle/semt adını farklı yazmayı dene.`, 'Geri dön', backToNearby);
+    return;
+  }
+
+  // Yakın kaynak duraklar (mevcut konumdan en yakın 6 tanesi)
+  const nearOrigins = allStops
+    .map(s => ({ ...s, dist: haversine(coords.lat, coords.lng, s.lat, s.lng) }))
+    .sort((a,b) => a.dist - b.dist)
+    .slice(0, 6);
+
+  const destCodes = new Set(destStops.map(s => String(s.code)));
+  const destNameByCode = {};
+  destStops.forEach(s => { destNameByCode[String(s.code)] = s.name; });
+
+  // Aday hatlar: kaynak durakta geçen VE hedef durakta da geçen hatlar
+  const candidates = []; // {hatKodu, origin, destCode, destName}
+  for (const origin of nearOrigins){
+    const originLines = (stopLines && stopLines[String(origin.code)]) || [];
+    for (const hatKodu of originLines){
+      for (const destCode of destCodes){
+        const destLines = (stopLines && stopLines[destCode]) || [];
+        if (destLines.includes(hatKodu)){
+          candidates.push({ hatKodu, origin, destCode, destName: destNameByCode[destCode] });
+        }
+      }
+    }
+  }
+
+  if (!candidates.length){
+    showState('🚌', 'Direkt hat bulunamadı', `Yakınındaki duraklardan "${query}" bölgesine doğrudan (aktarmasız) giden bir hat bulunamadı.`, 'Geri dön', backToNearby);
+    return;
+  }
+
+  // Aynı hat+durak kombinasyonlarını tekilleştir
+  const seen = new Set();
+  const uniqueCandidates = candidates.filter(c => {
+    const key = c.hatKodu + '|' + c.origin.code + '|' + c.destCode;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 12); // fazla istek atmamak için sınırla
+
+  showState('🚌', 'Hatlar doğrulanıyor…', `${uniqueCandidates.length} olası hat için yön ve canlı konum kontrol ediliyor.`);
+
+  const routeCache = {}; // hatKodu -> stops (DurakDetay_GYY sonucu)
+  const validResults = [];
+
+  for (const c of uniqueCandidates){
+    try{
+      if (!routeCache[c.hatKodu]){
+        routeCache[c.hatKodu] = await fetchDurakDetay(c.hatKodu);
+      }
+      const stops = routeCache[c.hatKodu];
+      const originEntries = stops.filter(s => String(s.durakKodu) === String(c.origin.code));
+      const destEntries = stops.filter(s => String(s.durakKodu) === String(c.destCode));
+      // Aynı yön grubunda ve kaynak sırası < hedef sırası olmalı
+      let validDirection = null;
+      for (const oe of originEntries){
+        for (const de of destEntries){
+          if (oe.yon === de.yon && oe.sirano < de.sirano){
+            validDirection = { oe, de };
+            break;
+          }
+        }
+        if (validDirection) break;
+      }
+      if (!validDirection) continue;
+
+      const eta = await computeEta(c.hatKodu, c.origin.code);
+      if (eta.results && eta.results.length){
+        validResults.push({
+          hatKodu: c.hatKodu,
+          destName: c.destName,
+          origin: c.origin,
+          etaMin: eta.results[0].etaMin,
+          stopsAway: eta.results[0].stopsAway
+        });
+      }
+    } catch(e){
+      console.error('Aday hat kontrolünde hata:', c.hatKodu, e);
+    }
+  }
+
+  validResults.sort((a,b) => a.etaMin - b.etaMin);
+
+  if (!validResults.length){
+    showState('🚌', 'Şu an aktif araç yok', `"${query}" için doğrudan hat bulundu ama şu anda canlı araç verisi yok (sefer saatleri dışında olabilir).`, 'Geri dön', backToNearby);
+    return;
+  }
+
+  renderRouteResults(validResults, query);
+}
+
+function renderRouteResults(results, query){
+  document.getElementById('toplabel').style.display = 'flex';
+  document.getElementById('toplabelText').textContent = `"${query.toUpperCase()}" İÇİN DİREKT HATLAR`;
+  document.getElementById('countLabel').textContent = `${results.length} seçenek`;
+  document.getElementById('backToNearbyBtn').style.display = 'inline-block';
+  footnote.textContent = 'Canlı GPS + ortalama hız üzerinden tahmini süre';
+
+  contentEl.innerHTML = '';
+  results.forEach(r => {
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${coords.lat},${coords.lng}&destination=${r.origin.lat},${r.origin.lng}&travelmode=walking`;
+    const div = document.createElement('div');
+    div.className = 'route-card';
+    div.innerHTML = `
+      <div class="route-top">
+        <span class="route-hat">${r.hatKodu}</span>
+        <div class="route-info">
+          <p class="dest">${r.destName} yönüne gidiyor</p>
+          <div class="origin">Biniş: ${r.origin.name} · ${r.origin.dist < 1 ? Math.round(r.origin.dist*1000)+' m' : r.origin.dist.toFixed(1)+' km'} yürüyüş</div>
+        </div>
+        <div class="route-eta">
+          <div class="min">${r.etaMin}<span> dk</span></div>
+          <div class="stops">${r.stopsAway} durak önce</div>
+        </div>
+      </div>
+    `;
+    div.addEventListener('click', () => window.open(mapsUrl, '_blank'));
+    contentEl.appendChild(div);
+  });
+}
+
+function backToNearby(){
+  document.getElementById('backToNearbyBtn').style.display = 'none';
+  document.getElementById('toplabelText').textContent = 'YAKINDAKİ DURAKLAR';
+  document.getElementById('searchInput').value = '';
+  if (coords) loadStops();
+}
+
+document.getElementById('searchBtn').addEventListener('click', () => {
+  const q = document.getElementById('searchInput').value.trim();
+  if (q && coords && allStops) searchDestination(q);
+});
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter'){
+    const q = e.target.value.trim();
+    if (q && coords && allStops) searchDestination(q);
+  }
+});
+document.getElementById('backToNearbyBtn').addEventListener('click', backToNearby);
+
+document.getElementById('refreshBtn').addEventListener('click', start);
+
+const modalBg = document.getElementById('modalBg');
+document.getElementById('gearBtn').addEventListener('click', () => modalBg.classList.add('show'));
+document.getElementById('closeModalBtn').addEventListener('click', () => modalBg.classList.remove('show'));
+modalBg.addEventListener('click', e => { if (e.target === modalBg) modalBg.classList.remove('show'); });
+
+document.querySelectorAll('.radius-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.radius-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+document.getElementById('applyModalBtn').addEventListener('click', () => {
+  const active = document.querySelector('.radius-btn.active');
+  RADIUS_M = parseInt(active.dataset.r, 10);
+  modalBg.classList.remove('show');
+  if (coords) loadStops();
+});
+
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+
+start();
+</script>
+</body>
+</html>
