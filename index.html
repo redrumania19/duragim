@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Cofinder</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2C1B10">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --roast:#2C1B10;
+    --cream:#F7EFE0;
+    --paper:#FFFDF9;
+    --brass:#B8863B;
+    --brass-dark:#8F6529;
+    --rust:#9C4A2E;
+    --sage:#5F7350;
+    --line:#E7DCC5;
+    --gray:#8A7A67;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Work Sans', sans-serif;
+    background:var(--cream);
+    color:var(--roast);
+  }
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    background:var(--cream);
+    display:flex;
+    flex-direction:column;
+  }
+
+  .topbar{
+    background:var(--roast);
+    color:var(--cream);
+    padding:calc(env(safe-area-inset-top) + 14px) 20px 20px;
+  }
+  .stamp{display:flex;align-items:center;gap:12px;}
+  .stamp-ring{
+    width:42px;height:42px;border:1.5px solid var(--brass);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    font-family:'Fraunces', serif;font-size:18px;color:var(--brass);
+  }
+  .brand-block .brand{font-family:'Fraunces', serif;font-size:25px;font-weight:600;line-height:1.1;}
+  .brand-block .sub{font-size:10.5px;font-weight:600;letter-spacing:2.5px;color:var(--brass);margin-top:2px;}
+  .gear{margin-left:auto;background:none;border:none;color:var(--cream);opacity:.75;font-size:20px;cursor:pointer;padding:4px;}
+  .hr{border:none;border-top:1px solid rgba(217,198,174,0.25);margin:14px 0 12px;}
+  .loc-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#D9C6AE;}
+  .loc-row .l{display:flex;align-items:center;gap:8px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--sage);flex-shrink:0;}
+  .dot.err{background:var(--rust);}
+  .refresh{color:var(--brass);font-weight:600;font-size:13px;background:none;border:none;cursor:pointer;font-family:inherit;}
+
+  .sortsection{padding:16px 20px 4px;}
+  .sortlabel-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .sortlabel{font-size:11px;font-weight:700;letter-spacing:1.8px;color:var(--gray);}
+  .count{font-size:12.5px;color:var(--gray);}
+  .sortbar{display:flex;gap:10px;}
+  .sortbtn{
+    flex:1;padding:11px 6px;border-radius:8px;border:1.5px solid var(--line);
+    background:var(--paper);color:var(--roast);font-size:14px;font-weight:600;
+    font-family:'Work Sans', sans-serif;cursor:pointer;
+  }
+  .sortbtn.active{background:var(--rust);border-color:var(--rust);color:#fff;}
+  .sortbtn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .list{padding:14px 18px 30px;display:flex;flex-direction:column;gap:14px;flex:1;}
+
+  .state{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px 30px;color:var(--gray);gap:14px;
+  }
+  .state .icon{font-size:34px;}
+  .state h3{font-family:'Fraunces', serif;color:var(--roast);margin:0;font-size:18px;}
+  .state p{margin:0;font-size:13.5px;line-height:1.5;}
+  .btn{
+    background:var(--rust);color:#fff;border:none;padding:12px 22px;border-radius:8px;
+    font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;
+  }
+
+  .card{background:var(--paper);border-radius:6px;padding:15px 16px 13px;position:relative;text-decoration:none;color:inherit;display:block;}
+  .card::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:4px;background:var(--brass);border-radius:2px;}
+  .row-top{display:flex;justify-content:space-between;align-items:flex-start;padding-left:14px;}
+  .name-block{display:flex;gap:10px;}
+  .rank{font-weight:700;font-size:13px;color:var(--brass-dark);margin-top:3px;}
+  .name-col .name{font-family:'Fraunces', serif;font-size:17px;font-weight:600;color:var(--roast);margin:0;line-height:1.2;}
+  .name-col .addr{font-size:11.5px;color:var(--gray);margin-top:3px;line-height:1.3;}
+  .rating-col{text-align:right;flex-shrink:0;padding-left:8px;}
+  .rating{font-weight:700;color:var(--roast);font-size:15px;white-space:nowrap;}
+  .rating .star{color:var(--brass);margin-right:2px;}
+  .revcount{font-size:11.5px;color:var(--gray);margin-top:2px;white-space:nowrap;}
+  .row-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:11px;padding-top:11px;padding-left:14px;border-top:1px solid var(--line);}
+  .row-bottom .l{display:flex;align-items:center;gap:9px;}
+  .dist-chip{background:#EFEAE0;color:var(--roast);font-weight:600;font-size:12.5px;padding:4px 9px;border-radius:6px;}
+  .walk{font-size:12px;color:var(--gray);}
+  .go{font-size:11.5px;font-weight:700;color:var(--sage);letter-spacing:.5px;}
+
+  .footnote{text-align:center;font-size:11px;color:var(--gray);padding:4px 20px 22px;}
+
+  /* Settings modal */
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(20,12,7,0.6);display:none;
+    align-items:flex-end;justify-content:center;z-index:10;
+  }
+  .modal-bg.show{display:flex;}
+  .modal{
+    background:var(--paper);width:100%;max-width:480px;border-radius:20px 20px 0 0;
+    padding:22px 22px calc(env(safe-area-inset-bottom) + 22px);
+  }
+  .modal h3{font-family:'Fraunces', serif;margin:0 0 6px;font-size:19px;color:var(--roast);}
+  .modal p{font-size:13px;color:var(--gray);line-height:1.5;margin:0 0 14px;}
+  .modal input{
+    width:100%;padding:12px 14px;border-radius:8px;border:1.5px solid var(--line);
+    font-size:14px;font-family:inherit;margin-bottom:12px;
+  }
+  .modal-row{display:flex;gap:10px;}
+  .modal-row .btn{flex:1;}
+  .btn.secondary{background:#EFEAE0;color:var(--roast);}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="stamp">
+      <div class="stamp-ring">C</div>
+      <div class="brand-block">
+        <div class="brand">Cofinder</div>
+        <div class="sub">KAVURMA REHBERİ</div>
+      </div>
+      <button class="gear" id="gearBtn" aria-label="Ayarlar">⚙</button>
+    </div>
+    <hr class="hr">
+    <div class="loc-row">
+      <div class="l"><span class="dot" id="locDot"></span><span id="locText">Konum alınıyor…</span></div>
+      <button class="refresh" id="refreshBtn">Yenile</button>
+    </div>
+  </div>
+
+  <div class="sortsection" id="sortSection" style="display:none;">
+    <div class="sortlabel-row">
+      <span class="sortlabel">SIRALA</span>
+      <span class="count" id="countLabel"></span>
+    </div>
+    <div class="sortbar">
+      <button class="sortbtn active" id="sortRating">Puana göre</button>
+      <button class="sortbtn" id="sortDist">Mesafeye göre</button>
+    </div>
+  </div>
+
+  <div id="content" class="list"></div>
+  <div class="footnote" id="footnote"></div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>Google Places API anahtarı</h3>
+    <p>Girersen gerçek Google puanları ve yorum sayılarıyla sonuç gösterilir. Boş bırakırsan ücretsiz OpenStreetMap verisiyle (puansız) çalışır. Anahtar yalnızca bu cihazda saklanır.</p>
+    <input type="text" id="apiKeyInput" placeholder="AIza... (opsiyonel)">
+    <div class="modal-row">
+      <button class="btn secondary" id="clearKeyBtn">Temizle</button>
+      <button class="btn" id="saveKeyBtn">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let coords = null;
+let shops = [];
+let usingGoogle = false;
+const RADIUS_M = 1200;
+
+const contentEl = document.getElementById('content');
+const locText = document.getElementById('locText');
+const locDot = document.getElementById('locDot');
+const sortSection = document.getElementById('sortSection');
+const countLabel = document.getElementById('countLabel');
+const footnote = document.getElementById('footnote');
+
+function haversine(lat1, lng1, lat2, lng2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function walkMin(km){ return Math.max(1, Math.round(km*12)); }
+
+function showState(icon, title, text, btnLabel, btnFn){
+  sortSection.style.display = 'none';
+  footnote.textContent = '';
+  contentEl.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'state';
+  div.innerHTML = `<div class="icon">${icon}</div><h3>${title}</h3><p>${text}</p>`;
+  if (btnLabel){
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = btnLabel;
+    btn.onclick = btnFn;
+    div.appendChild(btn);
+  }
+  contentEl.appendChild(div);
+}
+
+function start(){
+  locText.textContent = 'Konum alınıyor…';
+  locDot.classList.remove('err');
+  showState('📍', 'Konum bekleniyor', 'Yakındaki kahve dükkanlarını bulmak için konumuna ihtiyacım var.');
+
+  if (!navigator.geolocation){
+    locDot.classList.add('err');
+    locText.textContent = 'Konum desteklenmiyor';
+    showState('⚠️', 'Konum desteklenmiyor', 'Bu tarayıcı konum servisini desteklemiyor.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      locText.textContent = 'Konumun yakınında';
+      fetchShops();
+    },
+    err => {
+      locDot.classList.add('err');
+      locText.textContent = 'Konum izni gerekli';
+      showState('🔒', 'Konum izni gerekli', 'Tarayıcı ayarlarından Cofinder için konum iznini açıp tekrar dene.', 'Tekrar dene', start);
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+async function fetchShops(){
+  showState('☕', 'Aranıyor…', 'Çevrendeki kahve dükkanları taranıyor.');
+  const apiKey = localStorage.getItem('cofinder_google_key');
+  try{
+    if (apiKey){
+      shops = await fetchGoogle(apiKey);
+      usingGoogle = true;
+    } else {
+      shops = await fetchOSM();
+      usingGoogle = false;
+    }
+  } catch(e){
+    console.error(e);
+    showState('⚠️', 'Bir şeyler ters gitti', 'Veriler alınamadı. İnternet bağlantını kontrol edip tekrar dene.', 'Tekrar dene', fetchShops);
+    return;
+  }
+
+  if (!shops.length){
+    showState('☕', 'Yakında dükkan bulunamadı', `${RADIUS_M} metre içinde kahve dükkanı bulunamadı.`, 'Tekrar dene', fetchShops);
+    return;
+  }
+
+  shops.forEach(s => { s.dist = haversine(coords.lat, coords.lng, s.lat, s.lng); });
+  sortSection.style.display = 'block';
+  document.getElementById('sortRating').disabled = !usingGoogle;
+  footnote.textContent = usingGoogle
+    ? 'Google Places verileriyle'
+    : 'OpenStreetMap verileriyle (puan bilgisi yok — Google puanları için ⚙ ayarlardan API anahtarı ekle)';
+  render(usingGoogle ? 'rating' : 'dist');
+  if (usingGoogle){
+    document.getElementById('sortRating').classList.add('active');
+    document.getElementById('sortDist').classList.remove('active');
+  } else {
+    document.getElementById('sortDist').classList.add('active');
+    document.getElementById('sortRating').classList.remove('active');
+  }
+}
+
+async function fetchGoogle(apiKey){
+  const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.displayName,places.rating,places.userRatingCount,places.location,places.formattedAddress,places.id'
+    },
+    body: JSON.stringify({
+      includedTypes: ['cafe'],
+      maxResultCount: 12,
+      locationRestriction: { circle: { center: { latitude: coords.lat, longitude: coords.lng }, radius: RADIUS_M } }
+    })
+  });
+  if (!res.ok) throw new Error('Google Places request failed: ' + res.status);
+  const data = await res.json();
+  return (data.places || []).map(p => ({
+    name: p.displayName ? p.displayName.text : 'İsimsiz',
+    rating: p.rating || null,
+    count: p.userRatingCount || 0,
+    lat: p.location.latitude,
+    lng: p.location.longitude,
+    address: p.formattedAddress || '',
+    placeId: p.id
+  }));
+}
+
+async function fetchOSM(){
+  const query = `[out:json][timeout:20];(node["amenity"="cafe"](around:${RADIUS_M},${coords.lat},${coords.lng});node["shop"="coffee"](around:${RADIUS_M},${coords.lat},${coords.lng}););out body;`;
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    body: query
+  });
+  if (!res.ok) throw new Error('Overpass request failed: ' + res.status);
+  const data = await res.json();
+  return (data.elements || [])
+    .filter(el => el.tags && el.tags.name)
+    .map(el => ({
+      name: el.tags.name,
+      rating: null,
+      count: 0,
+      lat: el.lat,
+      lng: el.lon,
+      address: [el.tags['addr:street'], el.tags['addr:housenumber']].filter(Boolean).join(' '),
+      placeId: null
+    }));
+}
+
+function render(sortBy){
+  const sorted = [...shops].sort((a,b) => {
+    if (sortBy === 'rating') return (b.rating||0) - (a.rating||0);
+    return a.dist - b.dist;
+  });
+  contentEl.innerHTML = '';
+  countLabel.textContent = `${shops.length} dükkan · ${Math.max(...shops.map(s=>s.dist)).toFixed(1)} km`;
+
+  sorted.forEach((s, i) => {
+    const mapsUrl = s.placeId
+      ? `https://www.google.com/maps/dir/?api=1&origin=${coords.lat},${coords.lng}&destination=${s.lat},${s.lng}&destination_place_id=${s.placeId}&travelmode=walking`
+      : `https://www.google.com/maps/dir/?api=1&origin=${coords.lat},${coords.lng}&destination=${s.lat},${s.lng}&travelmode=walking`;
+
+    const a = document.createElement('a');
+    a.className = 'card';
+    a.href = mapsUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML = `
+      <div class="row-top">
+        <div class="name-block">
+          <div class="rank">${String(i+1).padStart(2,'0')}</div>
+          <div class="name-col">
+            <p class="name">${s.name}</p>
+            ${s.address ? `<div class="addr">${s.address}</div>` : ''}
+          </div>
+        </div>
+        <div class="rating-col">
+          ${s.rating ? `<div class="rating"><span class="star">★</span>${s.rating.toFixed(1)}</div><div class="revcount">${s.count.toLocaleString('tr-TR')} yorum</div>` : ''}
+        </div>
+      </div>
+      <div class="row-bottom">
+        <div class="l">
+          <span class="dist-chip">${s.dist < 1 ? Math.round(s.dist*1000)+' m' : s.dist.toFixed(1)+' km'}</span>
+          <span class="walk">${walkMin(s.dist)} dk yürüyüş</span>
+        </div>
+        <span class="go">YOL TARİFİ →</span>
+      </div>
+    `;
+    contentEl.appendChild(a);
+  });
+}
+
+document.getElementById('sortRating').addEventListener('click', () => {
+  if (document.getElementById('sortRating').disabled) return;
+  document.getElementById('sortRating').classList.add('active');
+  document.getElementById('sortDist').classList.remove('active');
+  render('rating');
+});
+document.getElementById('sortDist').addEventListener('click', () => {
+  document.getElementById('sortDist').classList.add('active');
+  document.getElementById('sortRating').classList.remove('active');
+  render('dist');
+});
+document.getElementById('refreshBtn').addEventListener('click', start);
+
+// Settings modal
+const modalBg = document.getElementById('modalBg');
+const apiKeyInput = document.getElementById('apiKeyInput');
+document.getElementById('gearBtn').addEventListener('click', () => {
+  apiKeyInput.value = localStorage.getItem('cofinder_google_key') || '';
+  modalBg.classList.add('show');
+});
+modalBg.addEventListener('click', e => { if (e.target === modalBg) modalBg.classList.remove('show'); });
+document.getElementById('saveKeyBtn').addEventListener('click', () => {
+  const val = apiKeyInput.value.trim();
+  if (val) localStorage.setItem('cofinder_google_key', val);
+  else localStorage.removeItem('cofinder_google_key');
+  modalBg.classList.remove('show');
+  fetchShops();
+});
+document.getElementById('clearKeyBtn').addEventListener('click', () => {
+  localStorage.removeItem('cofinder_google_key');
+  apiKeyInput.value = '';
+  modalBg.classList.remove('show');
+  fetchShops();
+});
+
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+
+start();
+</script>
+</body>
+</html>
