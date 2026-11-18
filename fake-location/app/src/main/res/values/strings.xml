@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sahte Konum</string>
+    <string name="start">Konumu sabitle</string>
+    <string name="stop">Durdur</string>
+    <string name="coord_hint">Enlem, boylam (örn. 41.0082, 28.9784)</string>
+    <string name="go">Git</string>
+    <string name="jitter">Hafif titreme ekle (daha gerçekçi)</string>
+    <string name="tap_hint">Haritaya dokunarak konum seç</string>
+    <string name="running">Sahte konum aktif</string>
+    <string name="idle">Kapalı</string>
+    <string name="channel_name">Sahte konum</string>
+    <string name="notif_title">Sahte konum aktif</string>
+    <string name="not_mock_title">Sahte konum uygulaması seçili değil</string>
+    <string name="not_mock_msg">Telefonun konumunu değiştirebilmem için:\n\n1. Ayarlar → Telefon hakkında → Yapı numarası\'na 7 kez dokunarak Geliştirici seçeneklerini aç.\n2. Ayarlar → Sistem → Geliştirici seçenekleri → \"Sahte konum uygulamasını seç\".\n3. Listeden \"Sahte Konum\"u seç ve geri dön.</string>
+    <string name="open_dev">Geliştirici seçeneklerini aç</string>
+    <string name="cancel">Vazgeç</string>
+    <string name="bad_coord">Koordinat anlaşılamadı</string>
+    <string name="need_perm">Konum izni olmadan çalışamaz</string>
+</resources>
