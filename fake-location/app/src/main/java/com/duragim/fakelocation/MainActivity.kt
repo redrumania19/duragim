@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +20,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.duragim.fakelocation.databinding.ActivityMainBinding
+import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
@@ -36,6 +40,9 @@ class MainActivity : AppCompatActivity() {
     private var marker: Marker? = null
     private var selected: GeoPoint? = null
     private val prefs by lazy { getSharedPreferences("fake", MODE_PRIVATE) }
+    private val places by lazy { SavedPlaces(prefs) }
+    /** Son aramada seçilen yerin adı; kaydederken isim önerisi olarak kullanılır. */
+    private var lastSearchName: String? = null
 
     private val permLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -59,10 +66,11 @@ class MainActivity : AppCompatActivity() {
         b.jitterSwitch.isChecked = prefs.getBoolean("jitter", true)
         b.jitterSwitch.setOnCheckedChangeListener { _, v -> prefs.edit().putBoolean("jitter", v).apply() }
 
-        b.goButton.setOnClickListener { applyTypedCoords() }
+        b.goButton.setOnClickListener { onSearch() }
         b.coordInput.setOnEditorActionListener { _, id, _ ->
-            if (id == EditorInfo.IME_ACTION_GO) { applyTypedCoords(); true } else false
+            if (id == EditorInfo.IME_ACTION_SEARCH || id == EditorInfo.IME_ACTION_GO) { onSearch(); true } else false
         }
+        renderPlaces()
 
         b.toggleButton.setOnClickListener {
             if (MockState.status.value is MockState.Status.Running) MockLocationService.stop(this)
@@ -102,8 +110,9 @@ class MainActivity : AppCompatActivity() {
         }))
     }
 
-    private fun select(p: GeoPoint, center: Boolean = false) {
+    private fun select(p: GeoPoint, center: Boolean = false, name: String? = null) {
         selected = p
+        lastSearchName = name
         prefs.edit().putFloat("lat", p.latitude.toFloat()).putFloat("lng", p.longitude.toFloat()).apply()
 
         val m = marker ?: Marker(b.map).also {
@@ -117,19 +126,105 @@ class MainActivity : AppCompatActivity() {
         b.map.invalidate()
         if (center) { b.map.controller.setZoom(16.0); b.map.controller.setCenter(p) }
 
-        b.coordLabel.text = fmt(p)
+        b.coordLabel.text = if (name != null) "$name\n${fmt(p)}" else fmt(p)
         b.toggleButton.isEnabled = true
 
         // Çalışırken yeni nokta seçilirse anında oraya taşı
         if (MockState.status.value is MockState.Status.Running) startMock()
     }
 
-    private fun applyTypedCoords() {
-        val p = parseCoords(b.coordInput.text?.toString().orEmpty())
-        if (p == null) { toast(R.string.bad_coord); return }
+    /** Kutudaki metin koordinatsa doğrudan gider, değilse adres olarak aranır. */
+    private fun onSearch() {
+        val text = b.coordInput.text?.toString()?.trim().orEmpty()
+        if (text.isEmpty()) return
+        hideKeyboard()
+        parseCoords(text, strict = true)?.let { select(it, center = true); return }
+
+        b.goButton.isEnabled = false
+        b.goButton.setText(R.string.searching)
+        lifecycleScope.launch {
+            val results = try { PlaceSearch.search(text) } catch (e: Exception) { null }
+            b.goButton.isEnabled = true
+            b.goButton.setText(R.string.search)
+            when {
+                results == null -> toast(R.string.search_error)
+                results.isEmpty() -> toast(R.string.no_results)
+                results.size == 1 -> pick(results[0])
+                else -> showResults(results)
+            }
+        }
+    }
+
+    private fun showResults(results: List<PlaceSearch.Result>) {
+        val labels = results.map { r -> if (r.detail.isBlank()) r.name else "${r.name}\n${r.detail}" }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.results_title)
+            .setItems(labels.toTypedArray()) { _, i -> pick(results[i]) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun pick(r: PlaceSearch.Result) = select(GeoPoint(r.lat, r.lng), center = true, name = r.name)
+
+    private fun hideKeyboard() {
         getSystemService(InputMethodManager::class.java)
             .hideSoftInputFromWindow(b.coordInput.windowToken, 0)
-        select(p, center = true)
+    }
+
+    // ---- Kayıtlı konumlar ----
+
+    private fun renderPlaces() {
+        val group = b.placesGroup
+        group.removeAllViews()
+        for (p in places.all()) {
+            group.addView(Chip(this).apply {
+                text = p.name
+                setOnClickListener { select(GeoPoint(p.lat, p.lng), center = true, name = p.name) }
+                setOnLongClickListener { confirmDelete(p.name); true }
+            })
+        }
+        group.addView(Chip(this).apply {
+            setText(R.string.save_place)
+            setOnClickListener {
+                if (selected == null) toast(R.string.select_first) else askPlaceName()
+            }
+        })
+    }
+
+    private fun askPlaceName() {
+        val p = selected ?: return
+        val input = TextInputEditText(this).apply {
+            setText(lastSearchName.orEmpty())
+            setSelection(text?.length ?: 0)
+            maxLines = 1
+        }
+        val box = TextInputLayout(this).apply {
+            hint = getString(R.string.place_name_hint)
+            addView(input)
+        }
+        val pad = (20 * resources.displayMetrics.density).toInt()
+        val wrap = FrameLayout(this).apply { setPadding(pad, pad / 2, pad, 0); addView(box) }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.save_place_title)
+            .setView(wrap)
+            .setPositiveButton(R.string.save) { _, _ ->
+                val name = input.text?.toString()?.trim().orEmpty().ifEmpty { fmt(p) }
+                places.save(SavedPlaces.Place(name, p.latitude, p.longitude))
+                renderPlaces()
+                Toast.makeText(this, getString(R.string.saved, name), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+        input.requestFocus()
+    }
+
+    private fun confirmDelete(name: String) {
+        MaterialAlertDialogBuilder(this)
+            .setMessage(getString(R.string.delete_place_q, name))
+            .setPositiveButton(R.string.delete) { _, _ -> places.delete(name); renderPlaces() }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun handleGeoIntent(i: Intent?) {
@@ -142,8 +237,10 @@ class MainActivity : AppCompatActivity() {
         if (p != null) select(p, center = true)
     }
 
-    private fun parseCoords(s: String): GeoPoint? {
-        val m = Regex("""(-?\d+(?:[.]\d+)?)\s*[,; ]\s*(-?\d+(?:[.]\d+)?)""").find(s) ?: return null
+    /** strict=true: metnin tamamı koordinat olmalı (adresteki "No 12 34" gibi sayılar karışmasın). */
+    private fun parseCoords(s: String, strict: Boolean = false): GeoPoint? {
+        val re = Regex("""(-?\d+(?:[.]\d+)?)\s*[,; ]\s*(-?\d+(?:[.]\d+)?)""")
+        val m = (if (strict) re.matchEntire(s.trim()) else re.find(s)) ?: return null
         val lat = m.groupValues[1].toDoubleOrNull() ?: return null
         val lng = m.groupValues[2].toDoubleOrNull() ?: return null
         if (lat !in -90.0..90.0 || lng !in -180.0..180.0) return null

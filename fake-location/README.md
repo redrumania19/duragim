@@ -5,6 +5,8 @@ Durağım'ı ve diğer konum kullanan uygulamaları evden test etmek için.
 
 ## Özellikler
 - Haritaya (OpenStreetMap) dokunarak ya da `41.0082, 28.9784` gibi koordinat yazarak konum seçme
+- Adres veya yer adıyla arama ("Kadıköy iskele", "Taksim Meydanı"): önce Türkiye'de, bulamazsa tüm dünyada (OpenStreetMap Nominatim)
+- Kayıtlı konumlar: "Ev", "İş" gibi isimle kaydet, üstteki çipten tek dokunuşla seç, basılı tutarak sil
 - Saniyede bir GPS, ağ ve Google "fused" sağlayıcılarına sahte konum basma
 - Çalışırken yeni noktaya dokununca konum anında oraya taşınır
 - İsteğe bağlı ~2 m titreme (sabit nokta yerine gerçek GPS gibi oynar)

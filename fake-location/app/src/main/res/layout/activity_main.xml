@@ -53,6 +53,19 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/placesGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleLine="true" />
+            </HorizontalScrollView>
+
             <TextView
                 android:id="@+id/coordLabel"
                 android:layout_width="match_parent"
@@ -74,14 +87,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="@string/coord_hint">
+                    android:hint="@string/search_hint">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/coordInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:imeOptions="actionGo"
-                        android:inputType="text"
+                        android:imeOptions="actionSearch"
+                        android:inputType="textPostalAddress"
                         android:maxLines="1" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -91,7 +104,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="@string/go" />
+                    android:text="@string/search" />
             </LinearLayout>
 
             <com.google.android.material.materialswitch.MaterialSwitch
